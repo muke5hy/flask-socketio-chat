@@ -2,7 +2,7 @@
 **If virtualenv already not installed install it**   
 $ pip install virtualenv
 
-** create new virtual env**   
+**create new virtual env**   
 $ mkdir ~/env  
 $ virtualenv ~/env/chat  
 $ source ~/env/chat/bin/activate   
