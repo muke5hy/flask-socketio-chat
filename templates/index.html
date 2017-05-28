@@ -2,34 +2,93 @@
 <html>
 <head>
     <title>Chatter</title>
-    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+    <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"></script>
     <script type="text/javascript" charset="utf-8">
+
+        function delete_message(elm) {
+            var code = prompt("Please enter your code");
+
+            if (code != null && $(elm).data('id') != null) {
+                all = $(elm).data('id') === 'all';
+                if (all){
+                    url = "/chat/"+code+'/';
+                }else{
+                    url = "/chat/"+code+'/'+$(elm).data('id');    
+                }
+                
+                $.ajax({url: url, method:"DELETE", success: function(result){
+                    if (result.status == 'ok' && all ){ 
+                        $('#messages').html('')
+                    }else if (result.status == 'ok'){ 
+                        $(elm).closest('.item').remove()
+                    }else{
+                        alert("Provided code is wrong")
+                    }
+                    
+                }});
+            } 
+        };
+
         $(document).ready(function() {
             namespace = '/chat';
             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
             socket.on('connect', function() {
-                socket.emit('my_event', {data: 'I\'m connected!'});
-            });
-            
-            socket.on('response', function(msg) {
-                $('#messages').append(
-                    '<div class="item"><div><img src="static/chat.png"><span>~'+
-                            msg.user+
-                            '~</span><span>'+
-                            msg.time +
-                            '</span><a href="#" >Delete</a></div><div>'+
-                        msg.msg+
-                        '</div></div>'
-                );
+                $.ajax({url: "/chat", success: function(result){
+                    if (result.status == 'ok'){
+
+                        $.each(result.data, function( index, value ) {
+                          $('#messages').append(append(value));
+                        });
+                            
+                    }
+                    
+                }});
+
+
+                
             });
 
-            
+            function append(msg) {
+                return '<div class="item"><div><img src="static/chat.png"><span> ~'+
+                    msg.username+
+                    '~</span><span> '+
+                    msg.timestamp +
+                    ' </span> <a href="#" class="delete_message" onclick="return delete_message(this);" data-id="'+msg.id+'">Delete</a></div><div>'+
+                    msg.message+
+                    '</div></div>' 
+            };           
+            socket.on('response', function(msg) {
+                if (msg.type == 'chat'){
+
+                    message = append(msg)
+                }else{
+                    message = '<div class="item"> <div>'+
+                            msg.user+
+                        ' Joined Conversation ' +msg.time+'</div></div>'
+                }
+
+                $('#messages').prepend(message);
+            });
+
+            $('#delete_message').on('click', function(){
+                alert($( this ).data('id'))
+            });
+
             $('form#chat').submit(function(event) {
+                if ($('#chat_data').val() == ''){
+                    alert("Please add some message");
+                    return false        
+                }
+
                 socket.emit('chat_event', {data: $('#chat_data').val()});
+                $('#chat_data').val('');
+
+                // return false as form should not get submitted 
                 return false;
             });
+
             
         });
     </script>
@@ -52,7 +111,7 @@
     <form id="chat" method="POST" action='#'>
         <input type="text" name="chat_data" id="chat_data" placeholder="Message">
         <input type="submit" value="Post!">
-        <input type="button" value="Delete All">
+        <input type="button" onclick="return delete_message(this)" data-id='all' value="Delete All">
     </form>
 
     <div id="messages"></div>
