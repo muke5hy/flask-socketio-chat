@@ -32,3 +32,5 @@ class Chatter(db.Model):
 
     def __repr__(self):
         return '<Chatter %r>' % self.username
+
+        

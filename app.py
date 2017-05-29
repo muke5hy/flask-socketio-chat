@@ -15,6 +15,7 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 
 app.config.from_pyfile('config.py')
+db.app=app
 db.init_app(app)
 
 
@@ -33,7 +34,7 @@ def login():
 @app.route('/chat', methods=['GET'])
 def chat_history():
 
-  results = db.session.query(Chatter).order_by(Chatter.timestamp.desc()).limit(20)
+  results = db.session.query(Chatter).order_by(Chatter.timestamp.desc()).limit(40)
   data = {'data':[i.serialize for i in results], 'status':'ok'}
   return jsonify(data)
 

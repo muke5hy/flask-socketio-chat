@@ -6,3 +6,4 @@ SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 
 SECRET_KEY = 'secret!@#$SDFSDF'
 SQLALCHEMY_TRACK_MODIFICATIONS = True
+CHATTER_CODE = 'abcd'
